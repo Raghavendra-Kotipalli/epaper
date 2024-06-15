@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generate PDF with Images</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>Generate PDF with All Images</h1>
+    <div class="images">
+        <img src="https://d66zsp32hue2v.cloudfront.net/Eenadu/2024/06/15/CAN/5_01/10d04c80_01.jpg" alt="Image 1">
+        <img src="https://d66zsp32hue2v.cloudfront.net/Eenadu/2024/06/15/CAN/5_02/dfacfc03_02.jpg" alt="Image 2">
+        <img src="https://d66zsp32hue2v.cloudfront.net/Eenadu/2024/06/15/CAN/5_03/01a666ee_03.jpg" alt="Image 3">
+    </div>
+    <button id="generatePDF">Generate PDF</button>
+
+    <script>
+        document.getElementById('generatePDF').addEventListener('click', () => {
+            // Load the jsPDF library
+            const { jsPDF } = window.jspdf;
+
+            // Create a new jsPDF instance
+            const doc = new jsPDF();
+
+            // Select all images within the .images div
+            const images = document.querySelectorAll('.images img');
+            
+            // Loop through each image and add it to the PDF
+            let yPos = 10; // Initial y position
+            const promises = [];
+
+            images.forEach((img, index) => {
+                // Create a promise to handle asynchronous image loading
+                const promise = new Promise((resolve, reject) => {
+                    // Create a new image element to ensure cross-origin settings are applied
+                    const newImg = new Image();
+                    newImg.crossOrigin = "Anonymous";
+                    newImg.src = img.src;
+                    newImg.onload = () => {
+                        // Create a canvas to draw the image
+                        const canvas = document.createElement('canvas');
+                        canvas.width = newImg.width;
+                        canvas.height = newImg.height;
+                        const context = canvas.getContext('2d');
+                        context.drawImage(newImg, 0, 0, newImg.width, newImg.height);
+
+                        // Get the image data in base64 format
+                        const imgData = canvas.toDataURL('image/jpeg');
+
+                        // Add a new page if the current position exceeds the page height
+                        if (yPos + 100 > doc.internal.pageSize.height) {
+                            doc.addPage();
+                            yPos = 10; // Reset y position for the new page
+                        }
+
+                        // Add the image to the PDF
+                        doc.addImage(imgData, 'JPEG', 10, yPos, 180, 100);
+                        yPos += 110; // Adjust y position for the next image (assuming each image height is 100 + 10 spacing)
+
+                        resolve();
+                    };
+                    newImg.onerror = reject;
+                });
+
+                promises.push(promise);
+            });
+
+            // Wait for all images to be processed before saving the PDF
+            Promise.all(promises).then(() => {
+                doc.save('images.pdf');
+            }).catch(error => {
+                console.error('An error occurred while processing the images:', error);
+            });
+        });
+    </script>
+</body>
+</html>
