@@ -1,0 +1,23 @@
+let a ="";
+for (var i = 0; i < $(".item img").length; i++) {
+    var url = $(".item img").eq(i).attr("highres");
+    let lastIndex = url.lastIndexOf('_mr');
+    if (lastIndex !== -1) {
+        url = url.slice(0, lastIndex) + url.slice(lastIndex + 3)+",";
+    }
+    a= a+url;
+}
+
+
+for (var i = 0; i < $(".item img").length; i++) {
+    var url = $(".item img").eq(i).attr("highres");
+    var htmlContent = "";
+    let lastIndex = url.lastIndexOf('_mr');
+    var aTag = "";
+    if (lastIndex !== -1) {
+        url = url.slice(0, lastIndex) + url.slice(lastIndex + 3);
+        aTag="<img src='"+url+"'>";
+    }
+    htmlContent = htmlContent + aTag;
+    console.log(htmlContent);
+}
